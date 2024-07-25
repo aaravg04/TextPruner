@@ -43,7 +43,7 @@ TextPruner will infer the ``base_model_prefix`` so we can leave its value as ``N
         self.general_config = GeneralConfig() if general_config is None else general_config
         self.vocabulary_pruning_config = VocabularyPruningConfig() if vocabulary_pruning_config is None else vocabulary_pruning_config
 
-        self.model.to(self.general_config.device)
+        # self.model.to(self.general_config.device)
 
         self.model_vocab_resizer = MODEL_MAP[self.model_type]['resizer']
         self.tokenizer_helper = MODEL_MAP[self.model_type]['tokenizer_helper']

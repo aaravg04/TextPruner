@@ -10,6 +10,10 @@ MODEL_MAP = {
         {'resizer': model_utils.BertVocabResizer,
          'tokenizer_helper': tokenizer_utils.SubwordTokenizer,
          'structure': model_utils.BertStructure},
+    'distilbert':
+        {'resizer': model_utils.DistilBertVocabResizer,
+         'tokenizer_helper': tokenizer_utils.SubwordTokenizer,
+         'structure': model_utils.DistilBertStructure},
     'electra': 
         {'resizer': model_utils.ElectraVocabResizer,
          'tokenizer_helper': tokenizer_utils.SubwordTokenizer,

@@ -182,6 +182,8 @@ TextPruner will infer the ``base_model_prefix`` so we can leave its value as ``N
                     ffn_importance = ffn_importance.cpu() # (num_layers, intermediate_size)
 
                     assert torch.all(head_importance==head_importance*self.head_mask)
+                    
+                    # if 'distil' not in self.model_type:
                     assert torch.all(ffn_importance==ffn_importance*self.ffn_mask)
                     #head_importance *= self.head_mask
                     #ffn_importance *= self.ffn_mask
@@ -190,8 +192,11 @@ TextPruner will infer the ``base_model_prefix`` so we can leave its value as ``N
                 dnum_of_heads -= num_of_heads_per_iter + 1 if i < num_of_heads_res else num_of_heads_per_iter
 
                 self.head_mask = generate_mask(head_importance, dnum_of_heads, head_even_masking)
+
+                # if 'distil' not in self.model_type:
                 self.ffn_mask = generate_mask(ffn_importance, dffn_size, ffn_even_masking, multiple_of=multiple_of)
 
+                # if 'distil' not in self.model_type:
                 logger.info(f"New ffn size:{self.ffn_mask.sum(-1).tolist()}")
                 logger.info(f"New num heads:{self.head_mask.sum(-1).tolist()}")
 
@@ -358,7 +363,12 @@ Call TransformerPruner.save_masks or TransformerPruner.save_jit_model manually i
 
         n_layers = self.model_structure.get_num_layers(self.base_model, ignore_model_prefix=True)
         n_heads = self.base_model.config.num_attention_heads
-        intermediate_size = self.base_model.config.intermediate_size
+
+        intermediate_size = 0
+        if self.model_type != 'distilbert':        
+            intermediate_size = self.base_model.config.intermediate_size
+        else:
+            intermediate_size = self.base_model.config.hidden_dim
 
         device = self.general_config.device
 
@@ -383,7 +393,7 @@ Call TransformerPruner.save_masks or TransformerPruner.save_jit_model manually i
                 ffn_output_weights.append(ffn_output[layer_num].weight) #.detach().to(device)
                 att_output_weights.append(att_output[layer_num].weight)
 
-        ffn_importance = torch.zeros(n_layers, intermediate_size).to(device) #ex. (12,3072)
+        ffn_importance = torch.zeros(n_layers, intermediate_size).to(device) #ex. (12,3072) | should be 6,3072 for DistilBERT i think
         num_examples = 0.0
 
         for batch in tqdm(dataloader, desc="Calculating IS with loss"):
